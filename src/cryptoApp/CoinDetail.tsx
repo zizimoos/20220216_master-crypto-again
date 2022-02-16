@@ -1,9 +1,14 @@
-import { Route, Routes, useLocation, useParams } from "react-router-dom";
+import {
+  Route,
+  Routes,
+  useLocation,
+  useMatch,
+  useParams,
+} from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import { AiOutlineLeftCircle, AiOutlineLoading3Quarters } from "react-icons/ai";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-
 import {
   Contract,
   Links,
@@ -26,6 +31,10 @@ const Container = styled.div`
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+  @media (min-width: 1000px) {
+    margin: 0 auto;
+    width: 900px;
+  }
 `;
 
 const BackLink = styled(Link)`
@@ -66,6 +75,7 @@ const Overview = styled.div`
   padding: 10px 20px;
   border-radius: 10px;
 `;
+
 const OverviewItem = styled.div`
   display: flex;
   flex-direction: column;
@@ -77,6 +87,7 @@ const OverviewItem = styled.div`
     margin-bottom: 5px;
   }
 `;
+
 const Description = styled.p`
   margin: 10px 0px;
   padding-right: 5px;
@@ -87,6 +98,33 @@ const Description = styled.p`
     text-transform: uppercase;
     font-size: 24px;
     font-weight: 700;
+  }
+`;
+
+const Tabs = styled.div`
+  width: 100%;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+`;
+const Tab = styled.div<{ isActive: boolean }>`
+  height: 36px;
+  border-radius: 10px;
+  font-size: 14px;
+  flex-basis: 48%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: ${(props) =>
+    props.isActive
+      ? props.theme.colors.subTextColor
+      : props.theme.colors.mainTextColor};
+  a {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 `;
 
@@ -138,6 +176,8 @@ const CoinDetail = () => {
   const params = useParams();
   // eslint-disable-next-line
   const location = useLocation();
+  const nestInfo = useMatch(`/${params.coinId}/info`);
+  const nestChart = useMatch(`/${params.coinId}/chart`);
 
   const [coinInfo, setCoinInfo] = useState<ICoinInfo>();
   const [coinPrice, setCoinPrice] = useState<ICoinPrice>();
@@ -164,8 +204,6 @@ const CoinDetail = () => {
     };
     fetchCoinPrice();
   }, [params.coinId]);
-  console.log(coinInfo);
-  console.log(coinPrice);
 
   return (
     <Container>
@@ -212,20 +250,18 @@ const CoinDetail = () => {
             </OverviewItem>
           </Overview>
 
-          {/* <Tabs>
-            <Tab isActive={chartMatch !== null}>
-              <Link to={`/${coinId}/chart`} state={{ coinId }}>
-                Chart
-              </Link>
+          <Tabs>
+            <Tab isActive={nestChart !== null}>
+              <Link to={`/${params.coinId}/chart`}>Chart</Link>
             </Tab>
-            <Tab isActive={priceMatch !== null}>
-              <Link to={`/${coinId}/price`}>Information</Link>
+            <Tab isActive={nestInfo !== null}>
+              <Link to={`/${params.coinId}/info`}>Information</Link>
             </Tab>
-          </Tabs> */}
+          </Tabs>
 
           <Routes>
             <Route path="chart" element={<Chart coinId={params.coinId!} />} />
-            <Route path="price" element={<Info />} />
+            <Route path="info" element={<Info />} />
           </Routes>
         </>
       )}
