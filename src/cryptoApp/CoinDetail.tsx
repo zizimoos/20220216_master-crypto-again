@@ -8,7 +8,7 @@ import {
 import styled, { keyframes } from "styled-components";
 import { AiOutlineLeftCircle, AiOutlineLoading3Quarters } from "react-icons/ai";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+
 import {
   Contract,
   Links,
@@ -21,6 +21,9 @@ import {
 } from "./interface";
 import Chart from "../components/Chart";
 import Info from "../components/Info";
+import { useQuery } from "react-query";
+import { apiCoinInfo, apiCoinPrice } from "../api";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 
 const Container = styled.div`
   width: 100vw;
@@ -174,98 +177,92 @@ interface ICoinPrice {
 
 const CoinDetail = () => {
   const params = useParams();
+  const coinId = params.coinId;
   // eslint-disable-next-line
   const location = useLocation();
   const nestInfo = useMatch(`/${params.coinId}/info`);
   const nestChart = useMatch(`/${params.coinId}/chart`);
 
-  const [coinInfo, setCoinInfo] = useState<ICoinInfo>();
-  const [coinPrice, setCoinPrice] = useState<ICoinPrice>();
-  const [isLoading, setIsLoading] = useState(true);
+  const { isLoading: infoLoading, data: coinInfo } = useQuery<ICoinInfo>(
+    ["coinInfo", coinId],
+    () => apiCoinInfo(coinId!)
+  );
+  const { isLoading: priceLoading, data: coinPrice } = useQuery<ICoinPrice>(
+    ["coinPrice", coinId],
+    () => apiCoinPrice(coinId!),
+    { refetchInterval: 1000 }
+  );
 
-  useEffect(() => {
-    const fetchCoinInfo = async () => {
-      const response = await fetch(
-        `https://api.coinpaprika.com/v1/coins/${params.coinId}`
-      );
-      const result = await response.json();
-      setCoinInfo(result);
-      setIsLoading(false);
-    };
-    fetchCoinInfo();
-
-    const fetchCoinPrice = async () => {
-      const response = await fetch(
-        `https://api.coinpaprika.com/v1/tickers/${params.coinId}`
-      );
-      const result = await response.json();
-      setCoinPrice(result);
-      setIsLoading(false);
-    };
-    fetchCoinPrice();
-  }, [params.coinId]);
-
+  let isLoading = infoLoading || priceLoading;
+  const forHelmet = coinInfo?.name;
   return (
-    <Container>
-      <BackLink to={"/"}>
-        <AiOutlineLeftCircle />
-      </BackLink>
-      <Header>
-        <Title>{params.coinId}</Title>
-      </Header>
-      {isLoading ? (
-        <IsLoading>
-          <AiOutlineLoading3Quarters />
-        </IsLoading>
-      ) : (
-        <>
-          <Overview>
-            <OverviewItem>
-              <span>Rank</span>
-              <span>{coinInfo?.rank}</span>
-            </OverviewItem>
-            <OverviewItem>
-              <span>Symbol</span>
-              <span>{coinInfo?.symbol}</span>
-            </OverviewItem>
-            <OverviewItem>
-              <span>CURRENT PRICE</span>
-              <span>
-                $
-                {coinPrice?.quotes.USD.price.toLocaleString("en-US", {
-                  maximumFractionDigits: 4,
-                })}
-              </span>
-            </OverviewItem>
-          </Overview>
-          <Description>{coinInfo?.description}</Description>
-          <Overview>
-            <OverviewItem>
-              <span>Total Suply</span>
-              <span>{coinPrice?.total_supply.toLocaleString("en-US")}</span>
-            </OverviewItem>
-            <OverviewItem>
-              <span>Max Supply:</span>
-              <span>{coinPrice?.max_supply.toLocaleString("en-US")}</span>
-            </OverviewItem>
-          </Overview>
+    <HelmetProvider>
+      <Container>
+        <Helmet>
+          <title>
+            {`${forHelmet}`} | {`CoinDetail`}
+          </title>
+        </Helmet>
+        <BackLink to={"/"}>
+          <AiOutlineLeftCircle />
+        </BackLink>
+        <Header>
+          <Title>{params.coinId}</Title>
+        </Header>
+        {isLoading ? (
+          <IsLoading>
+            <AiOutlineLoading3Quarters />
+          </IsLoading>
+        ) : (
+          <>
+            <Overview>
+              <OverviewItem>
+                <span>Rank</span>
+                <span>{coinInfo?.rank}</span>
+              </OverviewItem>
+              <OverviewItem>
+                <span>Symbol</span>
+                <span>{coinInfo?.symbol}</span>
+              </OverviewItem>
+              <OverviewItem>
+                <span>CURRENT PRICE</span>
+                <span>
+                  $
+                  {coinPrice?.quotes.USD.price.toLocaleString("en-US", {
+                    maximumFractionDigits: 4,
+                  })}
+                </span>
+              </OverviewItem>
+            </Overview>
+            <Description>{coinInfo?.description}</Description>
+            <Overview>
+              <OverviewItem>
+                <span>Total Suply</span>
+                <span>{coinPrice?.total_supply.toLocaleString("en-US")}</span>
+              </OverviewItem>
+              <OverviewItem>
+                <span>Max Supply</span>
+                <span>{coinPrice?.max_supply.toLocaleString("en-US")}</span>
+              </OverviewItem>
+            </Overview>
 
-          <Tabs>
-            <Tab isActive={nestChart !== null}>
-              <Link to={`/${params.coinId}/chart`}>Chart</Link>
-            </Tab>
-            <Tab isActive={nestInfo !== null}>
-              <Link to={`/${params.coinId}/info`}>Information</Link>
-            </Tab>
-          </Tabs>
+            <Tabs>
+              <Tab isActive={nestChart !== null}>
+                <Link to={`/${params.coinId}/chart`}>Chart</Link>
+              </Tab>
+              <Tab isActive={nestInfo !== null}>
+                <Link to={`/${params.coinId}/info`}>Information</Link>
+              </Tab>
+            </Tabs>
 
-          <Routes>
-            <Route path="chart" element={<Chart coinId={params.coinId!} />} />
-            <Route path="info" element={<Info />} />
-          </Routes>
-        </>
-      )}
-    </Container>
+            <Routes>
+              <Route path="chart" element={<Chart coinId={params.coinId!} />} />
+              <Route path="info" element={<Info />} />
+            </Routes>
+          </>
+        )}
+      </Container>
+    </HelmetProvider>
   );
 };
 

@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { useQuery } from "react-query";
+import { apiCoinList } from "../api";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 
 const Container = styled.div`
   width: 100vw;
@@ -76,59 +78,58 @@ interface ICoinList {
 }
 
 const CryptoApp = () => {
-  const [coinList, setCoinList] = useState<ICoinList[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("https://api.coinpaprika.com/v1/coins")
-      .then((res) => res.json())
-      .then((data) => {
-        setCoinList(data.slice(0, 500));
-        setIsLoading(false);
-      });
-  }, []);
+  const { isLoading, data: coinList } = useQuery<ICoinList[]>(
+    "coinList",
+    apiCoinList,
+    { refetchInterval: 10000 }
+  );
 
   return (
-    <Container>
-      <Header>
-        <Title>CRYPTO APP</Title>
-      </Header>
-      <>
-        {isLoading ? (
-          <IsLoading>
-            <AiOutlineLoading3Quarters />
-          </IsLoading>
-        ) : (
-          <CoinList>
-            {coinList.map((coin, index) => {
-              return (
-                <div key={index}>
-                  <LinkBox to={`/${coin.id}`} state={{ coinName: coin.name }}>
-                    <CoinBox>
-                      <div>
+    <HelmetProvider>
+      <Container>
+        <Helmet>
+          <title>{`Crypto App`}</title>
+        </Helmet>
+        <Header>
+          <Title>CRYPTO APP</Title>
+        </Header>
+        <>
+          {isLoading ? (
+            <IsLoading>
+              <AiOutlineLoading3Quarters />
+            </IsLoading>
+          ) : (
+            <CoinList>
+              {coinList?.map((coin, index) => {
+                return (
+                  <div key={index}>
+                    <LinkBox to={`/${coin.id}`} state={{ coinName: coin.name }}>
+                      <CoinBox>
                         <div>
-                          {
-                            <img
-                              src={`https://cryptoicon-api.vercel.app/api/icon/${coin.symbol.toLowerCase()}`}
-                              alt="coin"
-                              style={{ width: "20px", height: "20px" }}
-                            />
-                          }
+                          <div>
+                            {
+                              <img
+                                src={`https://cryptoicon-api.vercel.app/api/icon/${coin.symbol.toLowerCase()}`}
+                                alt="coin"
+                                style={{ width: "20px", height: "20px" }}
+                              />
+                            }
+                          </div>
+                          <div>{coin.name}</div>
                         </div>
-                        <div>{coin.name}</div>
-                      </div>
-                      <div>
-                        <div>price</div>
-                      </div>
-                    </CoinBox>
-                  </LinkBox>
-                </div>
-              );
-            })}
-          </CoinList>
-        )}
-      </>
-    </Container>
+                        <div>
+                          <div>price</div>
+                        </div>
+                      </CoinBox>
+                    </LinkBox>
+                  </div>
+                );
+              })}
+            </CoinList>
+          )}
+        </>
+      </Container>
+    </HelmetProvider>
   );
 };
 
