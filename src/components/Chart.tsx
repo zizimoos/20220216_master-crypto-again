@@ -3,6 +3,8 @@ import { apiCoinHistory } from "../api";
 import styled, { keyframes } from "styled-components";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import ApexChart from "react-apexcharts";
+import { useRecoilState } from "recoil";
+import { themeToggleState } from "../atoms/atoms";
 
 const Title = styled.h1`
   margin-top: 20px;
@@ -42,6 +44,9 @@ interface ICoinChartOHLC {
 }
 
 const Chart = ({ coinId }: IChartProps) => {
+  // eslint-disable-next-line
+  const [isDarkMode, _] = useRecoilState(themeToggleState);
+
   const { isLoading, data: chartData } = useQuery<ICoinChartOHLC[]>(
     ["coinChart", coinId],
     () => apiCoinHistory(coinId!)
@@ -90,6 +95,9 @@ const Chart = ({ coinId }: IChartProps) => {
                     day: "dd MMM",
                     hour: "HH:mm",
                   },
+                  style: {
+                    colors: isDarkMode ? "white" : "black",
+                  },
                 },
               },
               yaxis: {
@@ -99,6 +107,9 @@ const Chart = ({ coinId }: IChartProps) => {
                 },
                 labels: {
                   show: true,
+                  style: {
+                    colors: isDarkMode ? "white" : "black",
+                  },
                   formatter: (value) => {
                     return value.toLocaleString("en-US", {
                       style: "currency",

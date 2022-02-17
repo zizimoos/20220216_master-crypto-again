@@ -1,6 +1,8 @@
 import { createGlobalStyle, ThemeProvider } from "styled-components";
 import { DarkTheme, LightTheme } from "./theme";
 import Router from "./Router";
+import { useRecoilState } from "recoil";
+import { themeToggleState } from "./atoms/atoms";
 
 const GlobalStyle = createGlobalStyle`
 /* http://meyerweb.com/eric/tools/css/reset/ 
@@ -56,6 +58,7 @@ body {
 	margin: 0;
 	padding: 0;
 	color: ${(props) => props.theme.colors.mainTextColor};
+	background-color: ${(props) => props.theme.colors.mainBackgroundColor};
 }
 a {
 	text-decoration: none;
@@ -67,9 +70,11 @@ a {
 `;
 
 function App() {
+  // eslint-disable-next-line
+  const [isDarkMode, _] = useRecoilState(themeToggleState);
   return (
     <>
-      <ThemeProvider theme={LightTheme}>
+      <ThemeProvider theme={isDarkMode ? DarkTheme : LightTheme}>
         <GlobalStyle />
         <Router />
       </ThemeProvider>

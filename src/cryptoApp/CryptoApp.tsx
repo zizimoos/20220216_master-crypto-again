@@ -4,6 +4,14 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { useQuery } from "react-query";
 import { apiCoinList } from "../api";
 import { Helmet, HelmetProvider } from "react-helmet-async";
+import {
+  BsToggleOff,
+  BsToggleOn,
+  BsToggle2Off,
+  BsToggle2On,
+} from "react-icons/bs";
+import { useRecoilState } from "recoil";
+import { themeToggleState } from "../atoms/atoms";
 
 const Container = styled.div`
   width: 100vw;
@@ -13,6 +21,7 @@ const Container = styled.div`
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+  background-color: ${(props) => props.theme.colors.mainBackgroundColor};
   @media (min-width: 1000px) {
     margin: 0 auto;
     width: 900px;
@@ -23,6 +32,15 @@ const Header = styled.header`
   margin-top: 20px;
   padding: 20px;
 `;
+
+const ToggleBox = styled.div`
+  width: 100%;
+  height: 50px;
+  margin-left: 50px;
+  padding: 10px;
+  justify-content: flex-start;
+`;
+
 const Title = styled.h1``;
 
 const rotata = keyframes`
@@ -78,18 +96,24 @@ interface ICoinList {
 }
 
 const CryptoApp = () => {
+  const [isDarkMode, setIsDarkMode] = useRecoilState(themeToggleState);
   const { isLoading, data: coinList } = useQuery<ICoinList[]>(
     "coinList",
     apiCoinList,
     { refetchInterval: 10000 }
   );
-
+  const onToggle = () => {
+    setIsDarkMode(!isDarkMode);
+  };
   return (
     <HelmetProvider>
       <Container>
         <Helmet>
           <title>{`Crypto App`}</title>
         </Helmet>
+        <ToggleBox onClick={onToggle}>
+          {isDarkMode ? <BsToggle2Off /> : <BsToggle2On />}
+        </ToggleBox>
         <Header>
           <Title>CRYPTO APP</Title>
         </Header>
